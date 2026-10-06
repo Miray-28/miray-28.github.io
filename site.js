@@ -47,11 +47,12 @@
   filters.forEach(b => { b.querySelector('span').textContent = rooms.filter(r => b.dataset.filter === 'all' || r.categorie === b.dataset.filter).length; });
   const search = document.getElementById('room-search');
   const normalise = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const roomSearchText = rooms.map(r => normalise([r.nom, r.sujet, r.description].join(' ')));
   let selected = 'all';
   function filterRooms(animate = true) {
     const query = normalise(search.value.trim()); let count = 0;
     roomCards.forEach((card, i) => {
-      const r = rooms[i], show = (selected === 'all' || r.categorie === selected) && normalise([r.nom, r.sujet, r.description].join(' ')).includes(query);
+      const r = rooms[i], show = (selected === 'all' || r.categorie === selected) && roomSearchText[i].includes(query);
       card.hidden = !show; card.classList.remove('filter-enter');
       if (show) {
         if (animate && !reduced.matches) {
@@ -111,18 +112,19 @@
   });
 
   const chapters = [...document.querySelectorAll('[data-chapter]')], railLinks = [...document.querySelectorAll('.chapter-rail a')], header = document.querySelector('.site-header');
+  const progress = document.getElementById('reading-progress'), navLinks = [...nav.querySelectorAll('a[href^="#"]')];
   let scheduled = false, currentId = '';
   function onScroll() {
     scheduled = false;
     const max = document.documentElement.scrollHeight - innerHeight;
-    document.getElementById('reading-progress').style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0) + ')';
-    header.classList.toggle('scrolled', scrollY > 28);
     let active = chapters[0];
     chapters.forEach(c => { if (c.getBoundingClientRect().top <= innerHeight * .38) active = c; });
+    progress.style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0) + ')';
+    header.classList.toggle('scrolled', scrollY > 28);
     if (active.id !== currentId) {
       currentId = active.id;
       railLinks.forEach(a => { const selected = a.hash === '#' + currentId; a.classList.toggle('active', selected); if (selected) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current'); });
-      nav.querySelectorAll('a[href^="#"]').forEach(a => a.classList.toggle('current', a.hash === '#' + currentId));
+      navLinks.forEach(a => a.classList.toggle('current', a.hash === '#' + currentId));
     }
   }
   window.addEventListener('scroll', () => { if (!scheduled) { scheduled = true; requestAnimationFrame(onScroll); } }, { passive: true });
