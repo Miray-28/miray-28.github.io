@@ -9,7 +9,6 @@
   const heroName = document.querySelector('.hero-name');
   heroName.setAttribute('aria-label', name);
   heroName.replaceChildren(...Array.from(name).map((letter, i) => { const s = make('span', letter); s.setAttribute('aria-hidden', 'true'); s.style.setProperty('--letter', i); return s; }));
-  document.title = name + ' — cybersécurité';
   document.getElementById('year').textContent = new Date().getFullYear();
   if (p.description) document.getElementById('intro').textContent = p.description;
   const discordHandle = p.discordPseudo || 'miray.28.';
