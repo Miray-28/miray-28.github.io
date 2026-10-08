@@ -33,18 +33,18 @@
   const rooms = Array.isArray(p.rooms) ? p.rooms : [];
   const roomGrid = document.getElementById('room-grid');
   const roomCards = rooms.map((r, i) => {
-    const url = safeUrl(r.lien), card = make(url ? 'a' : 'article', '', 'room-card tilt-card' + (i === 0 ? ' featured' : ''));
+    const url = safeUrl(r.lien), card = make(url ? 'a' : 'article', '', 'room-card tilt-card');
     card.dataset.category = r.categorie; card.dataset.reveal = '';
     if (url) { card.href = url; card.target = '_blank'; card.rel = 'noopener noreferrer'; }
     const top = make('div', '', 'room-top'), done = make('span', '', 'room-done'); done.append(icon('check'), make('span', 'Terminée'));
     top.append(make('span', r.type, 'room-type'), done);
-    const main = make('div', '', 'room-main'), ico = make('span', '', 'room-icon'); ico.append(icon(r.icon)); main.append(ico, make('h3', r.nom));
+    const main = make('div', '', 'room-main'), ico = make('span', r.repere || r.sujet, 'room-marker'); ico.setAttribute('aria-hidden', 'true'); main.append(ico, make('h3', r.nom));
     const bottom = make('div', '', 'room-bottom'), tags = make('span', '', 'room-tags'); tags.append(make('span', r.niveau, 'difficulty'), make('span', r.sujet)); bottom.append(tags, icon('arrow'));
     card.append(top, main, make('p', r.description), bottom); return card;
   });
   roomGrid.replaceChildren(...roomCards);
   const filters = [...document.querySelectorAll('[data-filter]')];
-  filters.forEach(b => { b.querySelector('span').textContent = rooms.filter(r => b.dataset.filter === 'all' || r.categorie === b.dataset.filter).length; });
+  filters.forEach(b => { b.querySelector('span').textContent = rooms.filter(r => b.dataset.filter === 'all' ? r.selection === true : r.categorie === b.dataset.filter).length; });
   const search = document.getElementById('room-search');
   const normalise = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const roomSearchText = rooms.map(r => normalise([r.nom, r.sujet, r.description].join(' ')));
@@ -52,7 +52,7 @@
   function filterRooms(animate = true) {
     const query = normalise(search.value.trim()); let count = 0;
     roomCards.forEach((card, i) => {
-      const r = rooms[i], show = (selected === 'all' || r.categorie === selected) && roomSearchText[i].includes(query);
+      const r = rooms[i], show = (selected === 'all' ? r.selection === true : r.categorie === selected) && roomSearchText[i].includes(query);
       card.hidden = !show; card.classList.remove('filter-enter');
       if (show) {
         if (animate && !reduced.matches) {
@@ -62,7 +62,7 @@
         count++;
       }
     });
-    document.getElementById('filter-status').textContent = count + (count === 1 ? ' room affichée' : ' rooms affichées');
+    document.getElementById('filter-status').textContent = count + (selected === 'all' ? (count === 1 ? ' room sélectionnée' : ' rooms sélectionnées') : (count === 1 ? ' room affichée' : ' rooms affichées'));
     document.getElementById('empty-state').hidden = count > 0;
   }
   function selectFilter(value) {
@@ -78,7 +78,7 @@
   document.getElementById('badge-grid').replaceChildren(...(p.badges || []).map((b, i) => {
     const card = make('article', '', 'badge-card badge-' + b.theme + ' tilt-card'); card.dataset.reveal = '';
     const check = make('span', '', 'badge-check'); check.append(icon('check')); check.setAttribute('aria-label', 'Badge obtenu');
-    const emblem = make('div', '', 'badge-emblem'); emblem.setAttribute('aria-hidden', 'true'); emblem.append(make('span', '', 'badge-glint'), icon(b.icon));
+    const emblem = make('div', b.repere, 'badge-mark'); emblem.setAttribute('aria-hidden', 'true');
     card.append(make('span', '0' + (i + 1), 'badge-number'), check, emblem, make('h3', b.nom), make('p', b.description)); return card;
   }));
 
